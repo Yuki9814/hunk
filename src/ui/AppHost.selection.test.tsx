@@ -288,6 +288,34 @@ describe("DiffPane copy selection", () => {
     }
   });
 
+  test("one-cell drags still copy when current-line selection is disabled", async () => {
+    const bootstrap = { ...createSelectionBootstrap(), initialCursorLine: "off" as const };
+    const { setup, copied } = await renderSelectionApp(bootstrap);
+
+    try {
+      const frame = setup.captureCharFrame();
+      const target = locateText(frame, "item07");
+      expect(target).not.toBeNull();
+
+      await act(async () => {
+        await setup.mockMouse.drag(
+          target!.x + 2,
+          target!.y,
+          target!.x + 3,
+          target!.y,
+          MouseButtons.LEFT,
+        );
+      });
+      await flush(setup);
+
+      expect(copied.length).toBeGreaterThan(0);
+    } finally {
+      await act(async () => {
+        setup.renderer.destroy();
+      });
+    }
+  });
+
   test("pressing outside the review viewport clears any pending selection", async () => {
     const { setup, copied } = await renderSelectionApp(createSelectionBootstrap());
 
